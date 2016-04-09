@@ -1,0 +1,9 @@
+#!/usr/bin/env python2.7
+
+from Controller import *
+
+imFolder = '/Users/tiagosn/Documents/datasets/UCSD_Anomaly_Dataset.v1p2/UCSDped2/Test/Test007/'
+gtFolder = '/Users/tiagosn/Documents/datasets/UCSD_Anomaly_Dataset.v1p2/UCSDped2/Test/Test007_gt/'
+
+c = Controller(imFolder, gtFolder)
+c.run()
