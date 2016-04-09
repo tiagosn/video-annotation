@@ -26,8 +26,13 @@ class Controller:
         self.view.labelIm.bind('<ButtonRelease-1>', self.mouseReleaseAnnotationImage)
 
         self.view.btPrev.bind('<Button-1>', self.prevButtonClick)
+        self.app.bind('<Left>', self.prevButtonClick)
 
         self.view.btNext.bind('<Button-1>', self.nextButtonClick)
+        self.app.bind('<Right>', self.nextButtonClick)
+
+        self.app.bind('+', self.plusKey)
+        self.app.bind('-', self.minusKey)
 
         self.updateView()
 
@@ -46,8 +51,8 @@ class Controller:
         self.updateView()
 
     def mouseMovAnnotationImage(self, event):
-        row = event.y
-        col = event.x
+        row = event.y / self.view.zoom
+        col = event.x / self.view.zoom
 
         nRows = self.model.gt.shape[0]
         nCols = self.model.gt.shape[1]
@@ -62,3 +67,9 @@ class Controller:
     def mouseReleaseAnnotationImage(self, event):
         self.model.fill()
         self.updateView()
+
+    def plusKey(self, event):
+        self.view.zoomIn()
+
+    def minusKey(self, event):
+        self.view.zoomOut()

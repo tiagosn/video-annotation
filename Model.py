@@ -10,7 +10,6 @@ class Model:
         self.gtFolder = gtFolder
 
         self.imFiles = sorted([f for f in os.listdir(self.imFolder) if '.tif' in f])
-        print self.imFiles
 
         self.loadAll()
 

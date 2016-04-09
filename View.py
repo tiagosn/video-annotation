@@ -1,9 +1,16 @@
 import ttk
+import cv2
 
 from PIL import Image, ImageTk
 
 class View:
     def __init__(self, master):
+        self.zoom = 1.0
+
+        # TODO: possible bug
+        self.im = None
+        self.gt = None
+
         self.bgFrame = ttk.Frame(master)
         self.bgFrame.pack(side='right')
 
@@ -37,11 +44,30 @@ class View:
         self.bt2 = ttk.Button(self.sidePanel, text='BT2')
         self.bt2.pack(side='top')
 
-    def updateImages(self, im, mask):
-        im[:,:,1] |= mask
+    def zoomIn(self):
+        self.zoom += 0.1
+        self.updateImages()
 
-        self.setImage(self.labelIm, im)
-        self.setImage(self.labelMask, mask)
+    def zoomOut(self):
+        if self.zoom > 0.1:
+            self.zoom -= 0.1
+            self.updateImages()
+
+    def updateImages(self, im=None, gt=None):
+        if im is not None:
+            self.im = im
+
+        if gt is not None:
+            self.gt = gt
+
+        imAux = cv2.resize(self.im, dsize=(0,0), fx=self.zoom, fy=self.zoom, \
+                            interpolation=cv2.INTER_NEAREST)
+        gtAux = cv2.resize(self.gt, dsize=(0,0), fx=self.zoom, fy=self.zoom, \
+                            interpolation=cv2.INTER_NEAREST)
+        imAux[:,:,1] |= gtAux
+
+        self.setImage(self.labelIm, imAux)
+        self.setImage(self.labelMask, gtAux)
 
     def cv2photo(self, im):
         photo = Image.fromarray(im)
