@@ -8,6 +8,7 @@ class Model:
         self.i = 0
         self.imFolder = imFolder
         self.gtFolder = gtFolder
+        self.delete = False
 
         self.imFiles = sorted([f for f in os.listdir(self.imFolder) if '.tif' in f])
 
@@ -35,18 +36,18 @@ class Model:
 
     def loadGT(self):
         # case 1: GT already exists
-        # gtFile = self.gtFolder + self.imFiles[self.i].replace('.tif', '.bmp')
-        # if os.path.isfile(gtFile):
-        #     return cv2.imread(gtFile, cv2.IMREAD_GRAYSCALE)
+        gtFile = self.gtFolder + self.imFiles[self.i].replace('.tif', '.bmp')
+        if os.path.isfile(gtFile):
+            return cv2.imread(gtFile, cv2.IMREAD_GRAYSCALE)
 
         # case 2: GT can not be estimated for the first image
         if self.i == 0:
             return np.zeros((self.im.shape[0], self.im.shape[1]), dtype=np.uint8)
 
         # case 3: GT can not be estimated, because the previous image has no GT
-        # gtPrevFile = self.gtFolder + self.imFiles[self.i-1].replace('.tif', '.bmp')
-        # if not os.path.isfile(gtPrevFile):
-        #     return np.zeros((self.im.shape[0], self.im.shape[1]), dtype=np.uint8)
+        gtPrevFile = self.gtFolder + self.imFiles[self.i-1].replace('.tif', '.bmp')
+        if not os.path.isfile(gtPrevFile):
+            return np.zeros((self.im.shape[0], self.im.shape[1]), dtype=np.uint8)
 
         # case 4: GT can be estimated
         prevIm = cv2.imread(self.imFolder + self.imFiles[self.i-1], cv2.IMREAD_GRAYSCALE)
@@ -86,7 +87,10 @@ class Model:
 
     # controler interface
     def annotate(self, row1, col1, row2, col2):
-        self.gt[row1:row2+1, col1:col2+1] = 255
+        if self.delete:
+            self.gt[row1:row2+1, col1:col2+1] = 0
+        else:
+            self.gt[row1:row2+1, col1:col2+1] = 255
 
     def fill(self):
         self.gt = self.imfill(self.gt)
@@ -109,3 +113,6 @@ class Model:
         if self.i > 0:
             self.i -= 1
             self.loadAll()
+
+    def switchDel(self):
+        self.delete = not self.delete

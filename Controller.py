@@ -16,6 +16,7 @@ class Controller:
 
         self.model = Model(imFolder, gtFolder)
 
+        # init flags
         self.brushSize = 3 #TODO
 
         self.view = View(self.app)
@@ -33,6 +34,8 @@ class Controller:
 
         self.app.bind('+', self.plusKey)
         self.app.bind('-', self.minusKey)
+
+        self.app.bind('d', self.delKey)
 
         self.updateView()
 
@@ -73,3 +76,6 @@ class Controller:
 
     def minusKey(self, event):
         self.view.zoomOut()
+
+    def delKey(self, event):
+        self.model.switchDel()
