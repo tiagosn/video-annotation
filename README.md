@@ -1,7 +1,7 @@
 # video-annotation
 A simple video annotation software
 
-->![GUI](gui.png)<-
+![GUI](gui.png)
 
 #Run#
 Set the variables imFolder and gtFolder from the video_annotation file.
