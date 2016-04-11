@@ -35,14 +35,14 @@ class View:
         self.btNext.pack(side='right')
 
         # side panel
-        self.sidePanel = ttk.Frame(master)
-        self.sidePanel.pack(side='left')
-
-        self.bt1 = ttk.Button(self.sidePanel, text='BT1')
-        self.bt1.pack(side='top')
-
-        self.bt2 = ttk.Button(self.sidePanel, text='BT2')
-        self.bt2.pack(side='top')
+        # self.sidePanel = ttk.Frame(master)
+        # self.sidePanel.pack(side='left')
+        #
+        # self.bt1 = ttk.Button(self.sidePanel, text='BT1')
+        # self.bt1.pack(side='top')
+        #
+        # self.bt2 = ttk.Button(self.sidePanel, text='BT2')
+        # self.bt2.pack(side='top')
 
     def zoomIn(self):
         self.zoom += 0.1

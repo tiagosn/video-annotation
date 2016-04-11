@@ -2,8 +2,8 @@
 
 from Controller import *
 
-imFolder = '/Users/tiagosn/Documents/datasets/UCSD_Anomaly_Dataset.v1p2/UCSDped2/Test/Test007/'
-gtFolder = '/Users/tiagosn/Documents/datasets/UCSD_Anomaly_Dataset.v1p2/UCSDped2/Test/Test007_gt2/'
+imFolder = 'image folder'
+gtFolder = 'gt folder'
 
 c = Controller(imFolder, gtFolder)
 c.run()
