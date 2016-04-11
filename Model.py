@@ -1,5 +1,5 @@
 import os
-
+import random
 import cv2
 import numpy as np
 
@@ -36,18 +36,19 @@ class Model:
 
     def loadGT(self):
         # case 1: GT already exists
-        gtFile = self.gtFolder + self.imFiles[self.i].replace('.tif', '.bmp')
-        if os.path.isfile(gtFile):
-            return cv2.imread(gtFile, cv2.IMREAD_GRAYSCALE)
+        self.gtFile = self.gtFolder + self.imFiles[self.i].replace('.tif', '.bmp')
+        if os.path.isfile(self.gtFile):
+            return cv2.imread(self.gtFile, cv2.IMREAD_GRAYSCALE)
 
         # case 2: GT can not be estimated for the first image
         if self.i == 0:
             return np.zeros((self.im.shape[0], self.im.shape[1]), dtype=np.uint8)
 
+        # TODO:
         # case 3: GT can not be estimated, because the previous image has no GT
-        gtPrevFile = self.gtFolder + self.imFiles[self.i-1].replace('.tif', '.bmp')
-        if not os.path.isfile(gtPrevFile):
-            return np.zeros((self.im.shape[0], self.im.shape[1]), dtype=np.uint8)
+        # gtPrevFile = self.gtFolder + self.imFiles[self.i-1].replace('.tif', '.bmp')
+        # if not os.path.isfile(gtPrevFile):
+        #     return np.zeros((self.im.shape[0], self.im.shape[1]), dtype=np.uint8)
 
         # case 4: GT can be estimated
         prevIm = cv2.imread(self.imFolder + self.imFiles[self.i-1], cv2.IMREAD_GRAYSCALE)
@@ -62,7 +63,6 @@ class Model:
             fx, fy = self.avgFlow(flow, self.gt, r)
             fi = np.round(fx)
             fj = np.round(fy)
-            print 'fx=%lf, fy=%lf -> rows=%d, cols=%d' % (fx,fy,np.round(fx),np.round(fy))
 
             i1 = r[1]
             i2 = r[1] + r[3]
@@ -105,6 +105,8 @@ class Model:
             print 'area = %d' % (self.contourArea(self.gt, r))
 
     def nextIm(self):
+        cv2.imwrite(self.gtFile, self.gt)
+        print self.gtFile
         if self.i < (len(self.imFiles) - 1):
             self.i += 1
             self.loadAll()

@@ -12,6 +12,9 @@ class Controller:
     def __init__(self, imFolder, gtFolder):
         self.app = Tkinter.Tk()
 
+        # self.app.style = ttk.Style()
+        # self.app.style.theme_use("default")
+
         self.app.title("Video Annotation")
 
         self.model = Model(imFolder, gtFolder)
