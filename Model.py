@@ -3,30 +3,39 @@ import random
 import cv2
 import numpy as np
 
+from utils import *
+
 class Model:
     def __init__(self, imFolder, gtFolder):
-        self.i = 0
+        self.i = 0 # image counter
         self.imFolder = imFolder
         self.gtFolder = gtFolder
-        self.delete = False
+        self.delete = False # is the delete toggle activated?
 
+        self.anomalyTypeDict = {'Both': 255, 'Mov': 155, 'Ap': 100}
+        self.anomalySelectedType = 'Both'
+
+        # sorted list of all TIFF file in imFolder
         self.imFiles = sorted([f for f in os.listdir(self.imFolder) if '.tif' in f])
 
         self.loadAll()
 
-    def contourArea(self, bwIm, rect):
-        # bwIm is a np.uint8 image that contains the filled contour and should only contain pixels that are equal to 0 or 255
-        # rect is a opecv rectangle where the contour is
-        return np.sum(bwIm[rect[1]:(rect[1]+rect[3]),rect[0]:(rect[0]+rect[2])])/255
+    # count the number of pixels, from a certain ROI, that are > 0
+    def contourArea(self, gt, firstRow, firstCol, lastRow, lastCol):
+        # gt is a np.uint8
+        roi = gt[firstRow:lastRow,firstCol:lastCol]
+        return np.sum(roi > 0)
 
-    def avgFlow(self, flow, bwIm, rect):
-        nPixels = self.contourArea(bwIm, rect)
 
-        roiFlowCols = flow[rect[1]:(rect[1]+rect[3]),rect[0]:(rect[0]+rect[2]),0]
-        roiFlowRows = flow[rect[1]:(rect[1]+rect[3]),rect[0]:(rect[0]+rect[2]),1]
-        mask = bwIm[rect[1]:(rect[1]+rect[3]),rect[0]:(rect[0]+rect[2])]
+    # computes the avg flow for foreground pixels in a ROI
+    def avgFlow(self, flow, gt, firstRow, firstCol, lastRow, lastCol):
+        nPixels = self.contourArea(bwIm, firstRow, firstCol, lastRow, lastCol)
 
-        return np.mean(roiFlowRows[mask == 255]), np.mean(roiFlowCols[mask == 255])
+        roiFlowCols = flow[firstRow:lastRow,firstCol:lastCol,0]
+        roiFlowRows = flow[firstRow:lastRow,firstCol:lastCol,1]
+        roi = gt[firstRow:lastRow,firstCol:lastCol]
+
+        return np.mean(roiFlowRows[roi == 255]), np.mean(roiFlowCols[roi == 255])
 
     def loadAll(self):
         self.im = cv2.imread(self.imFolder + self.imFiles[self.i])
@@ -60,28 +69,29 @@ class Model:
         gt = np.zeros((self.im.shape[0], self.im.shape[1]), dtype=np.uint8)
         for c in self.contours:
             r = cv2.boundingRect(c)
-            fx, fy = self.avgFlow(flow, self.gt, r)
+            i1, j1, i2, j2 = rect2coordinates(r)
+            fx, fy = self.avgFlow(flow, self.gt, i1, j1, i2, j2)
             fi = np.round(fx)
             fj = np.round(fy)
-
-            i1 = r[1]
-            i2 = r[1] + r[3]
-            j1 = r[0]
-            j2 = r[0] + r[2]
 
             gt[i1+fi:i2+fi,j1+fj:j2+fj] = gtPrev[i1:i2,j1:j2]
 
         return gt
 
     def imfill(self, im):
-        aux = cv2.copyMakeBorder(im,5,5,5,5,0)
+        print 'IM FILL'
+        imAux = gt = np.zeros((im.shape[0], im.shape[1]), dtype=np.uint8)
+        imAux[im > 0] = 255
 
-        h, w = aux.shape[:2]
-        m = np.zeros((h+2, w+2), np.uint8)
+        aux = cv2.copyMakeBorder(imAux,5,5,5,5,0)
+
+        nRows, nCols = aux.shape[:2]
+        m = np.zeros((nRows+2, nCols+2), np.uint8)
         cv2.floodFill(aux, m, (0,0), 255);
 
         aux = cv2.bitwise_not(aux)[5:-5, 5:-5]
-        ret = aux | im
+        ret = aux | imAux
+        ret[im > 0] = im[im > 0]
 
         return ret
 
@@ -102,9 +112,11 @@ class Model:
         print len(self.contours)
         for c in self.contours:
             r = cv2.boundingRect(c)
-            print 'area = %d' % (self.contourArea(self.gt, r))
+            i1, j1, i2, j2 = rect2coordinates(r)
+            print 'area = %d' % (self.contourArea(self.gt, i1, j1, i2, j2))
 
     def nextIm(self):
+        print self.gt[self.gt > 0]
         cv2.imwrite(self.gtFile, self.gt)
         print self.gtFile
         if self.i < (len(self.imFiles) - 1):
@@ -112,9 +124,30 @@ class Model:
             self.loadAll()
 
     def prevIm(self):
+        print self.gt[self.gt > 0]
+        cv2.imwrite(self.gtFile, self.gt)
         if self.i > 0:
             self.i -= 1
             self.loadAll()
 
     def switchDel(self):
         self.delete = not self.delete
+
+    def selectByPiont(self, row, col):
+        for c in self.contours:
+            if cv2.pointPolygonTest(c, (col,row), False) >= 0:
+                r = cv2.boundingRect(c)
+                i1, j1, i2, j2 = rect2coordinates(r)
+                return i1, j1, i2, j2
+
+        return -1, -1, -1, -1
+
+    def setAnomalyType(self, firstRow, firstCol, lastRow, lastCol):
+        roi = self.gt[firstRow:lastRow,firstCol:lastCol]
+        print roi
+        roi[roi > 0] = self.anomalyTypeDict[self.anomalySelectedType]
+        print 'aKIIIIIII'
+        print roi
+        print self.anomalyTypeDict[self.anomalySelectedType]
+        self.gt[firstRow:lastRow,firstCol:lastCol] = roi[:,:]
+        print self.gt[firstRow:lastRow,firstCol:lastCol]
