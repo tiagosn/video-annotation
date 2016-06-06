@@ -31,10 +31,10 @@ class View:
         self.bottomKeysFrame.pack(side='top')
 
         self.btPrev = ttk.Button(self.bottomKeysFrame, text='Prev')
-        self.btPrev.pack(side='right')
+        self.btPrev.pack(side='left')
 
         self.btNext = ttk.Button(self.bottomKeysFrame, text='Next')
-        self.btNext.pack(side='left')
+        self.btNext.pack(side='right')
 
         self.statusFrame = ttk.Frame(self.bgFrame)
         self.statusFrame.pack(side='bottom')

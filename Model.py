@@ -100,7 +100,7 @@ class Model:
         if self.delete:
             self.gt[row1:row2+1, col1:col2+1] = 0
         else:
-            self.gt[row1:row2+1, col1:col2+1] = 255
+            self.gt[row1:row2+1, col1:col2+1] = self.anomalyTypeDict[self.anomalySelectedType]
 
     def fill(self):
         self.gt = self.imfill(self.gt)
